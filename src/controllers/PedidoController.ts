@@ -44,28 +44,26 @@ export const incluirPedido = async (req: Request, res: Response) => {
 
 export const atualizarPedido = async (req: Request, res: Response) => {
   try {
-    const itemId = parseInt(req.params.id, 10);
-    const { id_pedido, id_produto, qtdade } = req.body;
+    const id = parseInt(req.params.id, 10);
+    const { data, id_cliente } = req.body;
 
-    const itemDoPedido = await Pedido.findByPk(itemId);
+    const pedido = await Pedido.findByPk(id);
 
-    if (itemDoPedido) {
-      // Certifique-se de que o pedido e o produto existem antes de atualizar o item do pedido
-      const pedidoExistente = await Pedido.findByPk(id_pedido);
-      const produtoExistente = await Produto.findByPk(id_produto);
+    if (pedido) {
+      const cliente = await Cliente.findByPk(id_cliente)
 
-      if (!pedidoExistente || !produtoExistente) {
-        return res.status(404).json({ message: 'Pedido ou Produto não encontrado' });
+      if (!cliente) {
+        return res.status(404).json({ message: 'Cliente nao encontrado' });
       }
 
-      await itemDoPedido.update({ id_pedido, id_produto, qtdade });
-      res.json(itemDoPedido);
+      await pedido.update({ id_cliente, data });
+      res.json(pedido);
     } else {
-      res.status(404).json({ message: 'Item do Pedido não encontrado' });
+      res.status(404).json({ message: 'Pedido não encontrado' });
     }
   } catch (error) {
-    console.error('Erro ao atualizar item do pedido:', error);
-    res.status(500).json({ message: 'Erro ao atualizar item do pedido' });
+    console.error('Erro ao atualizar pedido:', error);
+    res.status(500).json({ message: 'Erro ao atualizar pedido' });
   }
 };
 

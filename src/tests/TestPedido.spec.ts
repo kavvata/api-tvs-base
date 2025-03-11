@@ -1,6 +1,6 @@
 const request = require("supertest");
 import { app } from "../server"; // Certifique-se de que o caminho está correto
-import { Pedido } from "../models/Pedido";
+import { Pedido, PedidoInstance } from "../models/Pedido";
 import { Cliente } from "../models/Cliente";
 
 describe("Teste da Rota incluirPedido", () => {
@@ -88,6 +88,7 @@ describe("Teste da Rota getPedidoById", () => {
 });
 
 describe("Teste da Rota listarPedidos", () => {
+  const listaPedidos = new Array<PedidoInstance>()
   let clienteId: number
 
   beforeAll(async () => {
@@ -101,15 +102,19 @@ describe("Teste da Rota listarPedidos", () => {
     clienteId = cliente.id
 
     let pedido = await Pedido.create({ data: "2024-01-01", id_cliente: cliente.id })
+    listaPedidos.push(pedido)
+
     pedido = await Pedido.create({ data: "2024-01-02", id_cliente: cliente.id })
+    listaPedidos.push(pedido)
     pedido = await Pedido.create({ data: "2024-01-03", id_cliente: cliente.id })
+    listaPedidos.push(pedido)
   })
 
   it("Deve retornar uma lista de pedidos", async () => {
     const response = await request(app).get("/pedidos");
 
     expect(response.status).toBe(200);
-    expect(response.body.produtos).toBeInstanceOf(Array);
+    expect(response.body.pedidos).toBeInstanceOf(Array);
   });
 
   it("Deve retornar a lista de pedidos dentro de um tempo aceitavel", async () => {
@@ -122,60 +127,99 @@ describe("Teste da Rota listarPedidos", () => {
   });
 
   afterAll(async () => {
+    if (listaPedidos.length > 0) {
+      listaPedidos.forEach((p) => Pedido.destroy({ where: { id: p.id } }))
+    }
     if (clienteId) {
       Cliente.destroy({ where: { id: clienteId } })
     }
-    const listaPedidos = await Pedido.findAll()
-    listaPedidos.forEach((p) => p.destroy())
   })
 });
 
-// describe("Teste da Rota excluirPedido", () => {
-//   const pedidoId = 420
-//
-//   beforeAll(async () => {
-//     await Pedido.create({ id: pedidoId, data: "2024-01-01", id_cliente: 1 });
-//   });
-//
-//   afterAll(async () => {
-//     await Pedido.destroy({ where: { id: pedidoId } })
-//   })
-//
-//   it("Deve excluir um pedido existente", async () => {
-//     const response = await request(app).delete(`/excluirPedido/${pedidoId}`)
-//
-//     expect(response.status).toBe(200)
-//     expect(response.body).toHaveProperty("message", "Pedido excluído com sucesso");
-//
-//     const pedidoExcluido = await Pedido.findByPk(pedidoId)
-//     expect(pedidoExcluido).toBeNull();
-//   })
-//
-// });
-//
-// describe("Teste da Rota atualizarPedido", () => {
-//   let pedidoId: number
-//
-//   beforeAll(async () => {
-//     const pedido = await Pedido.create({ data: "2024-01-01", id_cliente: 1 })
-//     pedidoId = pedido.id
-//   })
-//
-//   afterAll(async () => {
-//     if (pedidoId) {
-//       await Pedido.destroy({ where: { id: pedidoId } });
-//     }
-//   });
-//
-//   it("Deve atualizar pedido com sucesso", async () => {
-//     const pedidoAtualizado = {
-//       data: "2024-01-02",
-//       id_cliente: 2
-//     }
-//     const response = await request(app).put(`/atualizarPedido/${pedidoId}`)
-//
-//     expect(response.status).toBe(200)
-//     expect(response.body.data).toBe(pedidoAtualizado.data)
-//     expect(response.body.id_cliente).toBe(pedidoAtualizado.id_cliente)
-//   })
-// });
+describe("Teste da Rota excluirPedido", () => {
+  let pedidoId: number
+  let clienteId: number
+
+  beforeAll(async () => {
+    const novoCliente = {
+      nome: "Joao",
+      sobrenome: "Silva",
+      cpf: "123.345.678-90"
+    }
+    const cliente = await Cliente.create(novoCliente);
+    clienteId = cliente.id
+
+    const pedido = await Pedido.create({ data: "2024-01-01", id_cliente: cliente.id });
+    pedidoId = pedido.id
+  });
+
+  afterAll(async () => {
+    if (pedidoId) {
+      await Pedido.destroy({ where: { id: pedidoId } })
+    }
+    if (clienteId) {
+      await Cliente.destroy({ where: { id: clienteId } })
+    }
+  })
+
+  it("Deve excluir um pedido existente", async () => {
+    const response = await request(app).delete(`/excluirPedido/${pedidoId}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty("message", "Pedido excluído com sucesso");
+
+    const pedidoExcluido = await Pedido.findByPk(pedidoId)
+    expect(pedidoExcluido).toBeNull();
+  })
+
+});
+
+describe("Teste da Rota atualizarPedido", () => {
+  let pedidoId: number
+  let clienteId: number
+  let outroClienteId: number
+
+  beforeAll(async () => {
+    const novoCliente = {
+      nome: "Joao",
+      sobrenome: "Silva",
+      cpf: "123.345.678-90"
+    }
+    let cliente = await Cliente.create(novoCliente);
+
+    clienteId = cliente.id
+
+    novoCliente.nome = "Maria"
+    novoCliente.cpf = "345.678.123-10"
+
+    cliente = await Cliente.create(novoCliente);
+    outroClienteId = cliente.id
+
+    const pedido = await Pedido.create({ data: "2024-01-01", id_cliente: clienteId })
+    pedidoId = pedido.id
+  })
+
+  afterAll(async () => {
+    if (pedidoId) {
+      await Pedido.destroy({ where: { id: pedidoId } })
+    }
+    if (clienteId) {
+      await Cliente.destroy({ where: { id: clienteId } })
+    }
+    if (outroClienteId) {
+      await Cliente.destroy({ where: { id: outroClienteId } })
+    }
+  });
+
+  it("Deve atualizar pedido com sucesso", async () => {
+    const pedidoAtualizado = {
+      data: "2024-01-02",
+      id_cliente: outroClienteId
+    }
+    const response = await request(app).put(`/atualizarPedido/${pedidoId}`).send(pedidoAtualizado)
+
+    expect(response.status).toBe(200)
+    expect(response.body.data.startsWith(pedidoAtualizado.data)).toBe(true)
+    expect(response.body.id_cliente).toBe(pedidoAtualizado.id_cliente)
+  })
+});
