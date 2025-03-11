@@ -9,7 +9,7 @@ export const listarItensDoPedido = async (req: Request, res: Response) => {
     const itensDoPedido = await ItemDoPedido.findAll();
 
     if (itensDoPedido.length === 0) {
-      res.status(404).json({ message: 'Nenhum item de pedido encontrado' })
+      res.status(200).json({ message: 'Nenhum item de pedido encontrado' })
     } else {
       res.json({ itensDoPedido });
     }
@@ -59,7 +59,7 @@ export const atualizarItemDoPedido = async (req: Request, res: Response) => {
         return res.status(404).json({ message: 'Pedido ou Produto não encontrado' });
       }
 
-    e await itemDoPedido.update({ id_pedido, id_produto, qtdade });
+      await itemDoPedido.update({ id_pedido, id_produto, qtdade });
       res.json(itemDoPedido);
     } else {
       res.status(404).json({ message: 'Item do Pedido não encontrado' });

@@ -7,9 +7,9 @@ export const listarProdutos = async (req: Request, res: Response) => {
   try {
     const produtos = await Produto.findAll();
     if (produtos.length === 0) {
-      res.status(404).json({ menssage: "Nenhum Produto Encontrado." })
+      res.status(200).json({ message: "Nenhum Produto Encontrado." })
     } else {
-      res.json({ pedidos: produtos });
+      res.json({ produtos: produtos });
     }
     res.json({ produtos });
   } catch (error) {

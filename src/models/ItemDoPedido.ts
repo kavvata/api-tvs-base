@@ -1,5 +1,5 @@
 import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../instances/mysql";
+import { sequelize } from '../instances/sqlite';
 import { Pedido, PedidoInstance } from "./Pedido";
 import { Produto, ProdutoInstance } from "./Produto";
 

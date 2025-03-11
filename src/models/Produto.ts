@@ -1,21 +1,21 @@
 import { Model, DataTypes } from 'sequelize';
-import { sequelize } from '../instances/mysql';
+import { sequelize } from '../instances/sqlite';
 
 export interface ProdutoInstance extends Model {
-    id: number;
-    descricao: string;
+  id: number;
+  descricao: string;
 }
 
 export const Produto = sequelize.define<ProdutoInstance>('Produto', {
-    id: {
-        primaryKey: true,
-        autoIncrement: true,
-        type: DataTypes.INTEGER
-    },
-    descricao: {
-        type: DataTypes.STRING
-    },
+  id: {
+    primaryKey: true,
+    autoIncrement: true,
+    type: DataTypes.INTEGER
+  },
+  descricao: {
+    type: DataTypes.STRING
+  },
 }, {
-    tableName: 'produtos',
-    timestamps: false
+  tableName: 'produtos',
+  timestamps: false
 });
